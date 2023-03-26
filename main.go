@@ -58,10 +58,10 @@ func postEvent(nsec string, rs []string, id string, content string) error {
 	ev := nostr.Event{}
 
 	var sk string
-	if _, s, err := nip19.Decode(nsec); err != nil {
-		return err
+	if _, s, err := nip19.Decode(nsec); err == nil {
+		sk, _ = s.(string)
 	} else {
-		sk = s.(string)
+		return err
 	}
 	if pub, err := nostr.GetPublicKey(sk); err == nil {
 		if _, err := nip19.EncodePublicKey(pub); err != nil {
