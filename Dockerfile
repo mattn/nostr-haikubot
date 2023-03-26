@@ -8,4 +8,5 @@ COPY --link . .
 RUN CGO_ENABLED=0 go install -buildvcs=false -trimpath -ldflags '-w -s'
 FROM scratch
 COPY --link --from=build-dev /go/bin/nostr-haikubot /go/bin/nostr-haikubot
+COPY --from=build-dev /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 CMD ["/go/bin/nostr-haikubot"]
