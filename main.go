@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -20,8 +22,8 @@ import (
 
 var (
 	tries = []map[string]string{
-		{"nostr": "ノストラ", "zap": "ザップ", "jack": "ジャック"},
-		{"nostr": "ノスター", "zap": "ザップ", "jack": "ジャック"},
+		{`[nN]ostr`: `ノストラ`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
+		{`[nN]ostr`: `ノスター`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
 	}
 
 	rs = []string{
@@ -47,10 +49,6 @@ func init() {
 		log.Fatal(err)
 	} else {
 		baseDir = filepath.Dir(dir)
-	}
-
-	if nsec == "" {
-		log.Fatal("HAIKUBOT_NSEC is not set")
 	}
 }
 
@@ -101,26 +99,27 @@ func normalize(s string) string {
 	return strings.TrimSpace(s)
 }
 
-func analyze(ev *nostr.Event) error {
-	content := normalize(ev.Content)
-	var id string
+func isHaiku(content string) bool {
 	if haiku.MatchWithOpt(content, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
-		id = ev.ID
-	} else {
-		for _, try := range tries {
-			s := content
-			for k, v := range try {
-				s = strings.ReplaceAll(s, k, v)
-			}
-			if haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
-				id = ev.ID
-				break
-			}
+		return true
+	}
+	for _, try := range tries {
+		s := content
+		for k, v := range try {
+			s = strings.ReplaceAll(s, k, v)
+		}
+		if haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
+			return true
 		}
 	}
-	if id != "" {
+	return false
+}
+
+func analyze(ev *nostr.Event) error {
+	content := normalize(ev.Content)
+	if isHaiku(content) {
 		log.Println("MATCH!", content)
-		err := postEvent(nsec, rs, id, content)
+		err := postEvent(nsec, rs, ev.ID, content)
 		if err != nil {
 			return err
 		}
@@ -129,6 +128,19 @@ func analyze(ev *nostr.Event) error {
 }
 
 func main() {
+	var tt bool
+	flag.BoolVar(&tt, "t", false, "test")
+	flag.Parse()
+
+	if tt {
+		fmt.Println(isHaiku(strings.Join(flag.Args(), "")))
+		return
+	}
+
+	if nsec == "" {
+		log.Fatal("HAIKUBOT_NSEC is not set")
+	}
+
 	relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
 	if err != nil {
 		log.Fatal(err)
