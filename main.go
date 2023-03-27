@@ -22,6 +22,7 @@ import (
 
 var (
 	tries = []map[string]string{
+		{},
 		{`[nN]ostr`: `ノストラ`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
 		{`[nN]ostr`: `ノスター`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
 	}
@@ -52,7 +53,7 @@ func init() {
 	}
 }
 
-func postEvent(nsec string, rs []string, id string, content string) error {
+func postEvent(nsec string, rs []string, id string, content string, tag string) error {
 	ev := nostr.Event{}
 
 	var sk string
@@ -70,7 +71,7 @@ func postEvent(nsec string, rs []string, id string, content string) error {
 		return err
 	}
 
-	ev.Content = "#[0]\n" + content + " #n575"
+	ev.Content = "#[0]\n" + content + " " + tag
 	ev.CreatedAt = time.Now()
 	ev.Kind = nostr.KindTextNote
 	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", id, "", "mention"})
@@ -100,9 +101,6 @@ func normalize(s string) string {
 }
 
 func isHaiku(content string) bool {
-	if haiku.MatchWithOpt(content, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
-		return true
-	}
 	for _, try := range tries {
 		s := content
 		for k, v := range try {
@@ -115,11 +113,31 @@ func isHaiku(content string) bool {
 	return false
 }
 
+func isTanka(content string) bool {
+	for _, try := range tries {
+		s := content
+		for k, v := range try {
+			s = strings.ReplaceAll(s, k, v)
+		}
+		if haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: dic}) {
+			return true
+		}
+	}
+	return false
+}
+
 func analyze(ev *nostr.Event) error {
 	content := normalize(ev.Content)
 	if isHaiku(content) {
-		log.Println("MATCH!", content)
-		err := postEvent(nsec, rs, ev.ID, content)
+		log.Println("MATCHED HAIKU!", content)
+		err := postEvent(nsec, rs, ev.ID, content, "#n575")
+		if err != nil {
+			return err
+		}
+	}
+	if isTanka(content) {
+		log.Println("MATCHED TANKA!", content)
+		err := postEvent(nsec, rs, ev.ID, content, "#n57577")
 		if err != nil {
 			return err
 		}
