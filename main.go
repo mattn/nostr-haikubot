@@ -141,11 +141,6 @@ func main() {
 		log.Fatal("HAIKUBOT_NSEC is not set")
 	}
 
-	relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	filters := []nostr.Filter{{
 		Kinds: []int{1},
 		Limit: 10,
@@ -153,7 +148,25 @@ func main() {
 
 	enc := json.NewEncoder(os.Stdout)
 	from := time.Now()
+
+	var err error
+	var relay *nostr.Relay
 	for {
+		if relay == nil {
+			log.Println("Connecting to relay")
+			relay, err = nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
+			if err != nil {
+				time.Sleep(5 * time.Second)
+				continue
+			}
+		}
+		if relay.ConnectionError != nil {
+			log.Println(relay.ConnectionError)
+			relay.Close()
+			relay = nil
+			time.Sleep(5 * time.Second)
+			continue
+		}
 		ctx, cancel := context.WithCancel(context.Background())
 
 		filters[0].Since = &from
