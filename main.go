@@ -151,7 +151,11 @@ func main() {
 	flag.Parse()
 
 	if tt {
-		fmt.Println(isHaiku(strings.Join(flag.Args(), "")))
+		if isHaiku(strings.Join(flag.Args(), " ")) {
+			fmt.Println("HAIKU!")
+		} else if isTanka(strings.Join(flag.Args(), " ")) {
+			fmt.Println("TANKA!")
+		}
 		return
 	}
 
