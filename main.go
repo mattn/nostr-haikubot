@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -14,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/hermanschaaf/kana"
 	"github.com/ikawaha/kagome-dict/uni"
 	"github.com/mattn/go-haiku"
 	"github.com/nbd-wtf/go-nostr"
@@ -21,8 +23,7 @@ import (
 )
 
 var (
-	tries = []map[*regexp.Regexp]string{}
-	rs    = []string{
+	rs = []string{
 		"wss://nostr-relay.nokotaro.com",
 		"wss://relay-jp.nostr.wirednet.jp",
 		"wss://relay.snort.social",
@@ -30,14 +31,19 @@ var (
 		"wss://relay.nostrich.land",
 	}
 
-	reLink = regexp.MustCompile(`\w+://\S+`)
-	reTag  = regexp.MustCompile(`#\w+`)
-
 	nsec = os.Getenv("HAIKUBOT_NSEC")
 
 	baseDir string
 
-	dic = uni.Dict()
+	unidic = uni.Dict()
+
+	reLink = regexp.MustCompile(`\b\w+://\S+\b`)
+	reTag  = regexp.MustCompile(`\B#\S+\b`)
+
+	//go:embed dict.json
+	worddata []byte
+
+	words = map[*regexp.Regexp]string{}
 )
 
 func init() {
@@ -47,16 +53,13 @@ func init() {
 		baseDir = filepath.Dir(dir)
 	}
 
-	m := []map[string]string{
-		{`[nN]ostr`: `ノストラ`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
-		{`[nN]ostr`: `ノスター`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
+	var m map[string]string
+	if err := json.Unmarshal(worddata, &m); err != nil {
+		log.Fatal(err)
 	}
-	for _, mm := range m {
-		tt := map[*regexp.Regexp]string{}
-		for k, v := range mm {
-			tt[regexp.MustCompile(k)] = v
-		}
-		tries = append(tries, tt)
+	words = make(map[*regexp.Regexp]string)
+	for k, v := range m {
+		words[regexp.MustCompile(k)] = v
 	}
 }
 
@@ -107,44 +110,34 @@ func normalize(s string) string {
 	return strings.TrimSpace(s)
 }
 
-func isHaiku(content string) bool {
-	for _, try := range tries {
-		s := content
-		for k, v := range try {
-			s = k.ReplaceAllString(s, v)
-		}
-		if haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
-			return true
-		}
+func isHaiku(s string) bool {
+	for k, v := range words {
+		s = k.ReplaceAllString(s, v)
 	}
-	return false
+	s = kana.RomajiToKatakana(s)
+	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: unidic})
 }
 
-func isTanka(content string) bool {
-	for _, try := range tries {
-		s := content
-		for k, v := range try {
-			s = k.ReplaceAllString(s, v)
-		}
-		if haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: dic}) {
-			return true
-		}
+func isTanka(s string) bool {
+	for k, v := range words {
+		s = k.ReplaceAllString(s, v)
 	}
-	return false
+	s = kana.RomajiToKatakana(s)
+	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: unidic})
 }
 
 func analyze(ev *nostr.Event) error {
 	content := normalize(ev.Content)
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
-		err := postEvent(nsec, rs, ev.ID, content, "#n575")
+		err := postEvent(nsec, rs, ev.ID, content, "#n575 #haiku")
 		if err != nil {
 			return err
 		}
 	}
 	if isTanka(content) {
 		log.Println("MATCHED TANKA!", content)
-		err := postEvent(nsec, rs, ev.ID, content, "#n57577")
+		err := postEvent(nsec, rs, ev.ID, content, "#n57577 #tanka")
 		if err != nil {
 			return err
 		}
@@ -228,9 +221,11 @@ func main() {
 	flag.Parse()
 
 	if tt {
-		if isHaiku(strings.Join(flag.Args(), " ")) {
+		s := normalize(strings.Join(flag.Args(), " "))
+		fmt.Println(s)
+		if isHaiku(s) {
 			fmt.Println("HAIKU!")
-		} else if isTanka(strings.Join(flag.Args(), " ")) {
+		} else if isTanka(s) {
 			fmt.Println("TANKA!")
 		}
 		return
