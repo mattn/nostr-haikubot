@@ -163,12 +163,14 @@ func server() {
 
 	log.Println("Connected to relay")
 
-	filters[0].Since = &from
 	events := make(chan *nostr.Event, 10)
+	filters[0].Since = &from
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
+		defer wg.Done()
+
 		for ev := range events {
 			enc.Encode(ev)
 			err = analyze(ev)
@@ -190,6 +192,8 @@ func server() {
 		events <- ev
 	}
 	wg.Wait()
+
+	log.Println("Stopped")
 }
 
 func main() {
