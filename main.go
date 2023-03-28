@@ -21,13 +21,8 @@ import (
 )
 
 var (
-	tries = []map[string]string{
-		{},
-		{`[nN]ostr`: `ノストラ`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
-		{`[nN]ostr`: `ノスター`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
-	}
-
-	rs = []string{
+	tries = []map[*regexp.Regexp]string{}
+	rs    = []string{
 		"wss://nostr-relay.nokotaro.com",
 		"wss://relay-jp.nostr.wirednet.jp",
 		"wss://relay.snort.social",
@@ -50,6 +45,18 @@ func init() {
 		log.Fatal(err)
 	} else {
 		baseDir = filepath.Dir(dir)
+	}
+
+	m := []map[string]string{
+		{`[nN]ostr`: `ノストラ`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
+		{`[nN]ostr`: `ノスター`, `[zZ]ap`: `ザップ`, `[jJ]ack`: `ジャック`, `[bB]ot`: `ボット`},
+	}
+	for _, mm := range m {
+		tt := map[*regexp.Regexp]string{}
+		for k, v := range mm {
+			tt[regexp.MustCompile(k)] = v
+		}
+		tries = append(tries, tt)
 	}
 }
 
@@ -104,7 +111,7 @@ func isHaiku(content string) bool {
 	for _, try := range tries {
 		s := content
 		for k, v := range try {
-			s = strings.ReplaceAll(s, k, v)
+			s = k.ReplaceAllString(s, v)
 		}
 		if haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: dic}) {
 			return true
@@ -117,7 +124,7 @@ func isTanka(content string) bool {
 	for _, try := range tries {
 		s := content
 		for k, v := range try {
-			s = strings.ReplaceAll(s, k, v)
+			s = k.ReplaceAllString(s, v)
 		}
 		if haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: dic}) {
 			return true
@@ -146,10 +153,6 @@ func analyze(ev *nostr.Event) error {
 }
 
 func server(from *time.Time) {
-	filters := []nostr.Filter{{
-		Kinds: []int{1},
-	}}
-
 	enc := json.NewEncoder(os.Stdout)
 
 	log.Println("Connecting to relay")
@@ -163,7 +166,10 @@ func server(from *time.Time) {
 	log.Println("Connected to relay")
 
 	events := make(chan *nostr.Event, 10)
-	filters[0].Since = from
+	filters := []nostr.Filter{{
+		Kinds: []int{1},
+		Since: from,
+	}}
 	sub := relay.Subscribe(context.Background(), filters)
 
 	var wg sync.WaitGroup
@@ -190,6 +196,7 @@ func server(from *time.Time) {
 
 	log.Println("Subscribing events")
 
+	retry := 0
 loop:
 	for {
 		select {
@@ -198,12 +205,16 @@ loop:
 				break loop
 			}
 			events <- ev
-		case <-time.After(10 * time.Second):
-			if err := sub.Fire(); err != nil {
-				log.Println("Timeout", err)
+			retry = 0
+		case <-time.After(100 * time.Second):
+			retry++
+			log.Println("Retrying", retry)
+			if retry > 10 {
 				close(events)
 				break loop
 			}
+			sub.Filters[0].Since = from
+			sub.Fire()
 		}
 	}
 	wg.Wait()
