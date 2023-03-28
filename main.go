@@ -189,6 +189,14 @@ func main() {
 			time.Sleep(5 * time.Second)
 			continue
 		}
+		if time.Now().Sub(from) > 5*time.Minute {
+			log.Println("Reconnecting")
+			relay.Close()
+			relay = nil
+			from = time.Now()
+			time.Sleep(5 * time.Second)
+			continue
+		}
 		ctx, cancel := context.WithCancel(context.Background())
 
 		filters[0].Since = &from
@@ -210,7 +218,7 @@ func main() {
 				log.Println(err)
 			}
 			if ev.CreatedAt.After(from) {
-				from = ev.CreatedAt.Add(time.Second)
+				from = ev.CreatedAt.Add(time.Millisecond)
 			}
 		}
 		wg.Wait()
