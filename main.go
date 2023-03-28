@@ -11,7 +11,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/ikawaha/kagome-dict/uni"
@@ -165,52 +164,22 @@ func main() {
 
 	filters := []nostr.Filter{{
 		Kinds: []int{1},
-		Limit: 10,
 	}}
 
 	enc := json.NewEncoder(os.Stdout)
 	from := time.Now()
-
-	var err error
-	var relay *nostr.Relay
 	for {
-		if relay == nil {
-			log.Println("Connecting to relay")
-			relay, err = nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
-			if err != nil {
-				time.Sleep(5 * time.Second)
-				continue
-			}
-		}
-		if relay.ConnectionError != nil {
-			log.Println(relay.ConnectionError)
-			relay.Close()
-			relay = nil
+		log.Println("Connecting to relay")
+		relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
+		if err != nil {
 			time.Sleep(5 * time.Second)
 			continue
 		}
-		if time.Now().Sub(from) > 5*time.Minute {
-			log.Println("Reconnecting")
-			relay.Close()
-			relay = nil
-			from = time.Now()
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx := context.Background()
 
 		filters[0].Since = &from
 		log.Println("Subscribe events")
 		sub := relay.Subscribe(ctx, filters)
-
-		var wg sync.WaitGroup
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			<-sub.EndOfStoredEvents
-			cancel()
-		}()
-
 		for ev := range sub.Events {
 			enc.Encode(ev)
 			err = analyze(ev)
@@ -221,7 +190,7 @@ func main() {
 				from = ev.CreatedAt.Add(time.Millisecond)
 			}
 		}
-		wg.Wait()
+		relay.Close()
 		time.Sleep(5 * time.Second)
 	}
 }
