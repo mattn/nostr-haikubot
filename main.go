@@ -130,6 +130,9 @@ func isTanka(s string) bool {
 }
 
 func analyze(ev *nostr.Event) error {
+	if strings.Contains(ev.Content, "#n575") {
+		return nil
+	}
 	content := normalize(ev.Content)
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
