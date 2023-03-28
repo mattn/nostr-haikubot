@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/ikawaha/kagome-dict/uni"
@@ -144,6 +145,53 @@ func analyze(ev *nostr.Event) error {
 	return nil
 }
 
+func server() {
+	filters := []nostr.Filter{{
+		Kinds: []int{1},
+	}}
+
+	from := time.Now()
+	enc := json.NewEncoder(os.Stdout)
+
+	log.Println("Connecting to relay")
+	relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer relay.Close()
+
+	log.Println("Connected to relay")
+
+	filters[0].Since = &from
+	events := make(chan *nostr.Event, 10)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
+		for ev := range events {
+			enc.Encode(ev)
+			err = analyze(ev)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+			if ev.CreatedAt.After(from) {
+				from = ev.CreatedAt.Add(time.Second)
+			}
+		}
+	}(&wg, events)
+
+	log.Println("Subscribing events")
+	sub := relay.Subscribe(context.Background(), filters)
+	defer sub.Unsub()
+
+	for ev := range sub.Events {
+		events <- ev
+	}
+	wg.Wait()
+}
+
 func main() {
 	var tt bool
 	flag.BoolVar(&tt, "t", false, "test")
@@ -162,35 +210,8 @@ func main() {
 		log.Fatal("HAIKUBOT_NSEC is not set")
 	}
 
-	filters := []nostr.Filter{{
-		Kinds: []int{1},
-	}}
-
-	enc := json.NewEncoder(os.Stdout)
-	from := time.Now()
 	for {
-		log.Println("Connecting to relay")
-		relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
-		if err != nil {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		ctx := context.Background()
-
-		filters[0].Since = &from
-		log.Println("Subscribe events")
-		sub := relay.Subscribe(ctx, filters)
-		for ev := range sub.Events {
-			enc.Encode(ev)
-			err = analyze(ev)
-			if err != nil {
-				log.Println(err)
-			}
-			if ev.CreatedAt.After(from) {
-				from = ev.CreatedAt.Add(time.Millisecond)
-			}
-		}
-		relay.Close()
+		server()
 		time.Sleep(5 * time.Second)
 	}
 }
