@@ -23,7 +23,10 @@ import (
 )
 
 var (
-	rs = []string{
+	//feedRelay = "wss://universe.nostrich.land/?lang=ja"
+	feedRelay = "wss://relay-jp.nostr.wirednet.jp"
+
+	postRelays = []string{
 		"wss://nostr-relay.nokotaro.com",
 		"wss://relay-jp.nostr.wirednet.jp",
 		"wss://relay.snort.social",
@@ -130,14 +133,14 @@ func analyze(ev *nostr.Event) error {
 	content := normalize(ev.Content)
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
-		err := postEvent(nsec, rs, ev.ID, content, "#n575 #haiku")
+		err := postEvent(nsec, postRelays, ev.ID, content, "#n575 #haiku")
 		if err != nil {
 			return err
 		}
 	}
 	if isTanka(content) {
 		log.Println("MATCHED TANKA!", content)
-		err := postEvent(nsec, rs, ev.ID, content, "#n57577 #tanka")
+		err := postEvent(nsec, postRelays, ev.ID, content, "#n57577 #tanka")
 		if err != nil {
 			return err
 		}
@@ -149,7 +152,7 @@ func server(from *time.Time) {
 	enc := json.NewEncoder(os.Stdout)
 
 	log.Println("Connecting to relay")
-	relay, err := nostr.RelayConnect(context.Background(), "wss://universe.nostrich.land/?lang=ja")
+	relay, err := nostr.RelayConnect(context.Background(), feedRelay)
 	if err != nil {
 		log.Println(err)
 		return
