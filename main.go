@@ -150,7 +150,6 @@ func server() {
 		Kinds: []int{1},
 	}}
 
-	from := time.Now()
 	enc := json.NewEncoder(os.Stdout)
 
 	log.Println("Connecting to relay")
@@ -164,43 +163,41 @@ func server() {
 	log.Println("Connected to relay")
 
 	events := make(chan *nostr.Event, 10)
+	from := time.Now()
 	filters[0].Since = &from
+	sub := relay.Subscribe(context.Background(), filters)
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
+		defer sub.Unsub()
 
 		log.Println("Start")
-	loop:
 		for ev := range events {
 			enc.Encode(ev)
-			if ev == nil {
-				break loop
-			}
 			err = analyze(ev)
 			if err != nil {
 				log.Println(err)
 				continue
-			}
-			if ev.CreatedAt.After(from) {
-				from = ev.CreatedAt.Add(time.Second)
 			}
 		}
 		log.Println("Finish")
 	}(&wg, events)
 
 	log.Println("Subscribing events")
-	sub := relay.Subscribe(context.Background(), filters)
 
 loop:
 	for {
 		select {
-		case ev := <-sub.Events:
+		case ev, ok := <-sub.Events:
+			if !ok || ev == nil {
+				break loop
+			}
 			events <- ev
 		case <-time.After(3 * time.Minute):
 			log.Println("Timeout")
-			sub.Unsub()
+			close(events)
 			break loop
 		}
 	}
