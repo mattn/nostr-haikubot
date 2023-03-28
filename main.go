@@ -171,8 +171,13 @@ func server() {
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
 
+		log.Println("Start")
+	loop:
 		for ev := range events {
 			enc.Encode(ev)
+			if ev == nil {
+				break loop
+			}
 			err = analyze(ev)
 			if err != nil {
 				log.Println(err)
@@ -182,14 +187,22 @@ func server() {
 				from = ev.CreatedAt.Add(time.Second)
 			}
 		}
+		log.Println("Finish")
 	}(&wg, events)
 
 	log.Println("Subscribing events")
 	sub := relay.Subscribe(context.Background(), filters)
-	defer sub.Unsub()
 
-	for ev := range sub.Events {
-		events <- ev
+loop:
+	for {
+		select {
+		case ev := <-sub.Events:
+			events <- ev
+		case <-time.After(3 * time.Minute):
+			log.Println("Timeout")
+			sub.Unsub()
+			break loop
+		}
 	}
 	wg.Wait()
 
