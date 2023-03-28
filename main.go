@@ -145,7 +145,7 @@ func analyze(ev *nostr.Event) error {
 	return nil
 }
 
-func server() {
+func server(from *time.Time) {
 	filters := []nostr.Filter{{
 		Kinds: []int{1},
 	}}
@@ -163,8 +163,7 @@ func server() {
 	log.Println("Connected to relay")
 
 	events := make(chan *nostr.Event, 10)
-	from := time.Now()
-	filters[0].Since = &from
+	filters[0].Since = from
 	sub := relay.Subscribe(context.Background(), filters)
 
 	var wg sync.WaitGroup
@@ -181,6 +180,10 @@ func server() {
 				log.Println(err)
 				continue
 			}
+			if ev.CreatedAt.After(*from) {
+				*from = ev.CreatedAt.Add(time.Second)
+			}
+
 		}
 		log.Println("Finish")
 	}(&wg, events)
@@ -195,10 +198,12 @@ loop:
 				break loop
 			}
 			events <- ev
-		case <-time.After(3 * time.Minute):
-			log.Println("Timeout")
-			close(events)
-			break loop
+		case <-time.After(10 * time.Second):
+			if err := sub.Fire(); err != nil {
+				log.Println("Timeout", err)
+				close(events)
+				break loop
+			}
 		}
 	}
 	wg.Wait()
@@ -224,8 +229,9 @@ func main() {
 		log.Fatal("HAIKUBOT_NSEC is not set")
 	}
 
+	from := time.Now()
 	for {
-		server()
+		server(&from)
 		time.Sleep(5 * time.Second)
 	}
 }
