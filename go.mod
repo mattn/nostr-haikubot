@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/hermanschaaf/kana v0.0.0-20131031135054-bdd479bba5f1
 	github.com/ikawaha/kagome-dict/uni v1.1.9
-	github.com/mattn/go-haiku v0.0.13
+	github.com/mattn/go-haiku v0.0.14
 	github.com/nbd-wtf/go-nostr v0.15.1
 )
 
