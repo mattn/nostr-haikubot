@@ -22,6 +22,12 @@ import (
 	"github.com/nbd-wtf/go-nostr/nip19"
 )
 
+const name = "nostr-haikubot"
+
+const version = "0.0.12"
+
+var revision = "HEAD"
+
 var (
 	//feedRelay = "wss://universe.nostrich.land/?lang=ja"
 	feedRelay = "wss://relay-jp.nostr.wirednet.jp"
@@ -222,9 +228,16 @@ loop:
 }
 
 func main() {
+	var ver bool
 	var tt bool
+	flag.BoolVar(&ver, "v", false, "show version")
 	flag.BoolVar(&tt, "t", false, "test")
 	flag.Parse()
+
+	if ver {
+		fmt.Println(version)
+		os.Exit(0)
+	}
 
 	if tt {
 		s := normalize(strings.Join(flag.Args(), " "))
