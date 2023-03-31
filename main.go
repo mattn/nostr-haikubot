@@ -132,7 +132,6 @@ func isHaiku(s string) bool {
 	for k, v := range words {
 		s = k.ReplaceAllString(s, v)
 	}
-	println(s)
 	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: unidic})
 }
 
