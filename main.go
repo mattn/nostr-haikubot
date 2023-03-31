@@ -15,7 +15,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hermanschaaf/kana"
 	"github.com/ikawaha/kagome-dict/uni"
 	"github.com/mattn/go-haiku"
 	"github.com/nbd-wtf/go-nostr"
@@ -52,6 +51,9 @@ var (
 	//go:embed dict.json
 	worddata []byte
 
+	//go:embed bep-eng.dic
+	engdata []byte
+
 	words = map[*regexp.Regexp]string{}
 )
 
@@ -69,6 +71,13 @@ func init() {
 	words = make(map[*regexp.Regexp]string)
 	for k, v := range m {
 		words[regexp.MustCompile(k)] = v
+	}
+	for _, v := range strings.Split(string(engdata), "\n") {
+		if len(v) == 0 || v[0] == '#' {
+			continue
+		}
+		tok := strings.Split(v, " ")
+		words[regexp.MustCompile(`\b(?i:`+tok[0]+`)\b`)] = tok[1]
 	}
 }
 
@@ -123,7 +132,7 @@ func isHaiku(s string) bool {
 	for k, v := range words {
 		s = k.ReplaceAllString(s, v)
 	}
-	s = kana.RomajiToKatakana(s)
+	println(s)
 	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: unidic})
 }
 
@@ -131,7 +140,6 @@ func isTanka(s string) bool {
 	for k, v := range words {
 		s = k.ReplaceAllString(s, v)
 	}
-	s = kana.RomajiToKatakana(s)
 	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: unidic})
 }
 

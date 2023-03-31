@@ -11,8 +11,6 @@ github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 h1:HbphB4TFFXpv7MNrT52FGrrgVXF1
 github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0/go.mod h1:DZGJHZMqrU4JJqFAWUS2UO1+lbSKsdiOoYi9Zzey7Fc=
 github.com/gorilla/websocket v1.5.0 h1:PPwGk2jz7EePpoHN/+ClbZu8SPxiqlu12wZP/3sWmnc=
 github.com/gorilla/websocket v1.5.0/go.mod h1:YR8l580nyteQvAITg2hZ9XVh4b55+EU/adAjf1fMHhE=
-github.com/hermanschaaf/kana v0.0.0-20131031135054-bdd479bba5f1 h1:DGMk1qOdwt0aOBiLG96Ur23b3P3fFQFYKujuCQi1k1Y=
-github.com/hermanschaaf/kana v0.0.0-20131031135054-bdd479bba5f1/go.mod h1:Aspe8YCO6V+7zL5u644aileFmSoDBfuf5YTIrgo/4C0=
 github.com/ikawaha/kagome-dict v1.0.9 h1:1Gg735LbBYsdFu13fdTvW6eVt0qIf5+S2qXGJtlG8C0=
 github.com/ikawaha/kagome-dict v1.0.9/go.mod h1:mn9itZLkFb6Ixko7q8eZmUabHbg3i9EYewnhOtvd2RM=
 github.com/ikawaha/kagome-dict/ipa v1.0.10 h1:wk9I21yg+fKdL6HJB9WgGiyXIiu1VttumJwmIRwn0g8=
@@ -20,8 +18,8 @@ github.com/ikawaha/kagome-dict/uni v1.1.9 h1:cyKLswS8DSjUPTwsOjlC4WEqRkndUUVgiJR
 github.com/ikawaha/kagome-dict/uni v1.1.9/go.mod h1:xg/2qumqt+/s8DhDGYGIU7a+q9ori8ymFvDBtcAVmgc=
 github.com/ikawaha/kagome/v2 v2.9.2 h1:ojkD53v8kmlqGCHPuhZXCg0RUoF2zzisKTuDRtUI9CU=
 github.com/ikawaha/kagome/v2 v2.9.2/go.mod h1:OYzxPG9dQSalvznlcLNR8TEKpPwzKhnZszw9LLbf7e8=
-github.com/mattn/go-haiku v0.0.17 h1:M0r43H6mv5tkIdbJaovVUnfwzk6J6OZtMDEpgd+Czds=
-github.com/mattn/go-haiku v0.0.17/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
+github.com/mattn/go-haiku v0.0.19 h1:Kqwa0Nb15ApV3JQTeEycoYKSodadR4b3+OiCD4Mggk4=
+github.com/mattn/go-haiku v0.0.19/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
 github.com/nbd-wtf/go-nostr v0.15.1 h1:a3lGlEVNOtXpxv8VA3+rdtX5PCoYKXKAOpcr4cQFgO8=
 github.com/nbd-wtf/go-nostr v0.15.1/go.mod h1:qFFTIxh15H5GGN0WsBI/P73DteqsevnhSEW/yk8nEf4=
 github.com/valyala/fastjson v1.6.4 h1:uAUNq9Z6ymTgGhcm0UynUAB6tlbakBrz6CQFax3BXVQ=
@@ -29,5 +27,3 @@ github.com/valyala/fastjson v1.6.4/go.mod h1:CLCAqky6SMuOcxStkYQvblddUtoRxhYMGLr
 golang.org/x/exp v0.0.0-20230321023759-10a507213a29 h1:ooxPy7fPvB4kwsA2h+iBNHkAbp/4JxTSwCmvdjEYmug=
 golang.org/x/exp v0.0.0-20230321023759-10a507213a29/go.mod h1:CxIveKay+FTh1D0yPZemJVgC/95VzuuOLq5Qi4xnoYc=
 golang.org/x/net v0.8.0 h1:Zrh2ngAOFYneWTAIAPethzeaQLuHwhuBkuV6ZiRnUaQ=
-launchpad.net/gocheck v0.0.0-20140225173054-000000000087 h1:Izowp2XBH6Ya6rv+hqbceQyw/gSGoXfH/UPoTGduL54=
-launchpad.net/gocheck v0.0.0-20140225173054-000000000087/go.mod h1:hj7XX3B/0A+80Vse0e+BUHsHMTEhd0O4cpUHr/e/BUM=
