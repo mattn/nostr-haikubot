@@ -1,4 +1,4 @@
 secret.yaml
 k8s
-test.sh
+*.sh
 nostr-haikubot
