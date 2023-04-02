@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/ikawaha/kagome-dict/uni v1.1.9
-	github.com/mattn/go-haiku v0.0.20
+	github.com/mattn/go-haiku v0.0.21
 	github.com/nbd-wtf/go-nostr v0.15.1
 )
 

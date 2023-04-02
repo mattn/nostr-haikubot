@@ -188,7 +188,6 @@ func server(from *time.Time) {
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
-		defer sub.Unsub()
 
 		log.Println("Start")
 		for ev := range events {
@@ -201,7 +200,6 @@ func server(from *time.Time) {
 			if ev.CreatedAt.After(*from) {
 				*from = ev.CreatedAt.Add(time.Second)
 			}
-
 		}
 		log.Println("Finish")
 	}(&wg, events)
@@ -229,6 +227,7 @@ loop:
 			sub.Fire()
 		}
 	}
+	sub.Unsub()
 	wg.Wait()
 
 	log.Println("Stopped")
