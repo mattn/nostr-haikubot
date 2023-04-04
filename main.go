@@ -46,7 +46,7 @@ var (
 	unidic = uni.Dict()
 
 	reLink = regexp.MustCompile(`\b\w+://\S+\b`)
-	reTag  = regexp.MustCompile(`\B#\S+\b`)
+	reTag  = regexp.MustCompile(`\B#\S+`)
 
 	//go:embed dict.json
 	worddata []byte
