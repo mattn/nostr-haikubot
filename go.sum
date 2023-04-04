@@ -18,10 +18,6 @@ github.com/ikawaha/kagome-dict/uni v1.1.9 h1:cyKLswS8DSjUPTwsOjlC4WEqRkndUUVgiJR
 github.com/ikawaha/kagome-dict/uni v1.1.9/go.mod h1:xg/2qumqt+/s8DhDGYGIU7a+q9ori8ymFvDBtcAVmgc=
 github.com/ikawaha/kagome/v2 v2.9.2 h1:ojkD53v8kmlqGCHPuhZXCg0RUoF2zzisKTuDRtUI9CU=
 github.com/ikawaha/kagome/v2 v2.9.2/go.mod h1:OYzxPG9dQSalvznlcLNR8TEKpPwzKhnZszw9LLbf7e8=
-github.com/mattn/go-haiku v0.0.20 h1:X2hsK/5DMkwAPHMwmHHk65K4gWYyZ05cLJC8JM5/LTU=
-github.com/mattn/go-haiku v0.0.20/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
-github.com/mattn/go-haiku v0.0.21 h1:4l2EpFd4Ym1tsYeap3v8ZtlxHCDMFf/5M0wF27ld5Og=
-github.com/mattn/go-haiku v0.0.21/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
 github.com/mattn/go-haiku v0.0.22 h1:h5lKYbTla12PysPyYp3r2JvlS9YPGtEQbQzBGN/HfNQ=
 github.com/mattn/go-haiku v0.0.22/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
 github.com/nbd-wtf/go-nostr v0.15.1 h1:a3lGlEVNOtXpxv8VA3+rdtX5PCoYKXKAOpcr4cQFgO8=
