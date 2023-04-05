@@ -64,6 +64,8 @@ func init() {
 		baseDir = filepath.Dir(dir)
 	}
 
+	time.Local = time.FixedZone("Local", 9*60*60)
+
 	var m map[string]string
 	if err := json.Unmarshal(worddata, &m); err != nil {
 		log.Fatal(err)
@@ -240,14 +242,6 @@ loop:
 	wg.Wait()
 
 	log.Println("Stopped")
-}
-
-func init() {
-	jst, err := time.LoadLocation("Asia/Tokyo")
-	if err != nil {
-		panic(err)
-	}
-	time.Local = jst
 }
 
 func main() {
