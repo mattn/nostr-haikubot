@@ -192,12 +192,12 @@ func server(from *time.Time) {
 		defer wg.Done()
 
 		log.Println("Start")
-	loop:
+	events_loop:
 		for {
 			select {
 			case ev, ok := <-events:
 				if !ok {
-					break loop
+					break events_loop
 				}
 				enc.Encode(ev)
 				err = analyze(ev)
@@ -206,7 +206,7 @@ func server(from *time.Time) {
 					continue
 				}
 				if ev.CreatedAt.After(*from) {
-					*from = ev.CreatedAt.Add(time.Second)
+					*from = ev.CreatedAt
 				}
 			case <-time.After(10 * time.Second):
 				log.Println("Health check")
