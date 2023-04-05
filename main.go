@@ -177,7 +177,7 @@ func server(from *time.Time) {
 
 	log.Println("Connected to relay")
 
-	events := make(chan *nostr.Event, 10)
+	events := make(chan *nostr.Event, 100)
 	filters := []nostr.Filter{{
 		Kinds: []int{1},
 		Since: from,
@@ -190,15 +190,24 @@ func server(from *time.Time) {
 		defer wg.Done()
 
 		log.Println("Start")
-		for ev := range events {
-			enc.Encode(ev)
-			err = analyze(ev)
-			if err != nil {
-				log.Println(err)
-				continue
-			}
-			if ev.CreatedAt.After(*from) {
-				*from = ev.CreatedAt.Add(time.Second)
+	loop:
+		for {
+			select {
+			case ev, ok := <-events:
+				if !ok {
+					break loop
+				}
+				enc.Encode(ev)
+				err = analyze(ev)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+				if ev.CreatedAt.After(*from) {
+					*from = ev.CreatedAt.Add(time.Second)
+				}
+			case <-time.After(10 * time.Second):
+				log.Println("Health check")
 			}
 		}
 		log.Println("Finish")
@@ -231,6 +240,14 @@ loop:
 	wg.Wait()
 
 	log.Println("Stopped")
+}
+
+func init() {
+	jst, err := time.LoadLocation("Asia/Tokyo")
+	if err != nil {
+		panic(err)
+	}
+	time.Local = jst
 }
 
 func main() {
