@@ -191,6 +191,7 @@ func server(from *time.Time) {
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
 
+		retry := 0
 		log.Println("Start")
 	events_loop:
 		for {
@@ -208,8 +209,15 @@ func server(from *time.Time) {
 				if ev.CreatedAt.After(*from) {
 					*from = ev.CreatedAt
 				}
+				retry = 0
 			case <-time.After(10 * time.Second):
-				log.Println("Health check")
+				retry++
+				log.Println("Health check", retry)
+				if retry > 60 {
+					close(events)
+					sub.Unsub()
+					break events_loop
+				}
 			}
 		}
 		log.Println("Finish")
@@ -217,28 +225,14 @@ func server(from *time.Time) {
 
 	log.Println("Subscribing events")
 
-	retry := 0
 loop:
 	for {
-		select {
-		case ev, ok := <-sub.Events:
-			if !ok || ev == nil {
-				break loop
-			}
-			events <- ev
-			retry = 0
-		case <-time.After(100 * time.Second):
-			retry++
-			log.Println("Retrying", retry)
-			if retry > 10 {
-				close(events)
-				break loop
-			}
-			sub.Filters[0].Since = from
-			sub.Fire()
+		ev, ok := <-sub.Events
+		if !ok || ev == nil {
+			break loop
 		}
+		events <- ev
 	}
-	sub.Unsub()
 	wg.Wait()
 
 	log.Println("Stopped")
