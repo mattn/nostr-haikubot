@@ -211,6 +211,12 @@ func server(from *time.Time) {
 				}
 				retry = 0
 			case <-time.After(10 * time.Second):
+				if relay.ConnectionError != nil {
+					log.Println(err)
+					close(events)
+					sub.Unsub()
+					break events_loop
+				}
 				retry++
 				log.Println("Health check", retry)
 				if retry > 60 {
