@@ -20,6 +20,8 @@ github.com/ikawaha/kagome/v2 v2.9.2 h1:ojkD53v8kmlqGCHPuhZXCg0RUoF2zzisKTuDRtUI9
 github.com/ikawaha/kagome/v2 v2.9.2/go.mod h1:OYzxPG9dQSalvznlcLNR8TEKpPwzKhnZszw9LLbf7e8=
 github.com/mattn/go-haiku v0.0.24 h1:brs3CbN/Y3M6wkcLQ2sugJEtHGOv7v7+/BILwvvNvRI=
 github.com/mattn/go-haiku v0.0.24/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
+github.com/mattn/go-haiku v0.0.25 h1:+OtyZ2Q+Y27Dj2/BpW8rUXFMstJ9EoMiw7mOROrB1Og=
+github.com/mattn/go-haiku v0.0.25/go.mod h1:moWyj2EXTKXE1zaOeQrIbRpv/4+je3PSJvjd06aTGbQ=
 github.com/nbd-wtf/go-nostr v0.15.1 h1:a3lGlEVNOtXpxv8VA3+rdtX5PCoYKXKAOpcr4cQFgO8=
 github.com/nbd-wtf/go-nostr v0.15.1/go.mod h1:qFFTIxh15H5GGN0WsBI/P73DteqsevnhSEW/yk8nEf4=
 github.com/valyala/fastjson v1.6.4 h1:uAUNq9Z6ymTgGhcm0UynUAB6tlbakBrz6CQFax3BXVQ=
