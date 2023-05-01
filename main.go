@@ -15,7 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ikawaha/kagome-dict/uni"
+	//"github.com/ikawaha/kagome-dict/uni"
+	//"github.com/ikawaha/kagome-dict/ipa"
+	"github.com/ikawaha/kagome-dict-ipa-neologd"
 	"github.com/mattn/go-haiku"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -41,9 +43,11 @@ var (
 
 	nsec = os.Getenv("HAIKUBOT_NSEC")
 
+	debug = false
+
 	baseDir string
 
-	unidic = uni.Dict()
+	kagomeDic = ipaneologd.Dict()
 
 	reLink = regexp.MustCompile(`\b\w+://\S+\b`)
 	reTag  = regexp.MustCompile(`\B#\S+`)
@@ -134,14 +138,14 @@ func isHaiku(s string) bool {
 	for k, v := range words {
 		s = k.ReplaceAllString(s, v)
 	}
-	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: unidic})
+	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: kagomeDic, Debug: debug})
 }
 
 func isTanka(s string) bool {
 	for k, v := range words {
 		s = k.ReplaceAllString(s, v)
 	}
-	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: unidic})
+	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: kagomeDic, Debug: debug})
 }
 
 func analyze(ev *nostr.Event) error {
@@ -247,6 +251,7 @@ loop:
 func main() {
 	var ver bool
 	var tt bool
+	flag.BoolVar(&debug, "V", false, "verbose")
 	flag.BoolVar(&ver, "v", false, "show version")
 	flag.BoolVar(&tt, "t", false, "test")
 	flag.Parse()

@@ -3,8 +3,8 @@ module github.com/mattn/nostr-haikubot
 go 1.20
 
 require (
-	github.com/ikawaha/kagome-dict/uni v1.1.9
-	github.com/mattn/go-haiku v0.0.25
+	github.com/ikawaha/kagome-dict-ipa-neologd v0.3.2
+	github.com/mattn/go-haiku v0.0.31
 	github.com/nbd-wtf/go-nostr v0.15.1
 )
 
@@ -16,6 +16,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/ikawaha/kagome-dict v1.0.9 // indirect
+	github.com/ikawaha/kagome-dict/uni v1.1.9 // indirect
 	github.com/ikawaha/kagome/v2 v2.9.2 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29 // indirect
