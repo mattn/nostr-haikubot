@@ -106,7 +106,7 @@ func postEvent(nsec string, rs []string, id string, content string, tag string) 
 	}
 
 	ev.Content = "#[0]\n" + content + " " + tag
-	ev.CreatedAt = time.Now()
+	ev.CreatedAt = nostr.Now()
 	ev.Kind = nostr.KindTextNote
 	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", id, "", "mention"})
 	ev.Sign(sk)
@@ -184,11 +184,16 @@ func server(from *time.Time) {
 	log.Println("Connected to relay")
 
 	events := make(chan *nostr.Event, 100)
+	timestamp := nostr.Timestamp(from.Unix())
 	filters := []nostr.Filter{{
 		Kinds: []int{1},
-		Since: from,
+		Since: &timestamp,
 	}}
-	sub := relay.Subscribe(context.Background(), filters)
+	sub, err := relay.Subscribe(context.Background(), filters)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -210,8 +215,8 @@ func server(from *time.Time) {
 					log.Println(err)
 					continue
 				}
-				if ev.CreatedAt.After(*from) {
-					*from = ev.CreatedAt
+				if ev.CreatedAt.Time().After(*from) {
+					*from = ev.CreatedAt.Time()
 				}
 				retry = 0
 			case <-time.After(10 * time.Second):
