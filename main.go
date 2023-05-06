@@ -36,9 +36,11 @@ var (
 	postRelays = []string{
 		"wss://nostr-relay.nokotaro.com",
 		"wss://relay-jp.nostr.wirednet.jp",
+		"wss://nostr.holybea.com",
 		"wss://relay.snort.social",
 		"wss://relay.damus.io",
 		"wss://relay.nostrich.land",
+		"wss://nostr.h3z.jp",
 	}
 
 	nsec = os.Getenv("HAIKUBOT_NSEC")
@@ -87,7 +89,7 @@ func init() {
 	}
 }
 
-func postEvent(nsec string, rs []string, id string, content string, tag string) error {
+func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag string) error {
 	ev := nostr.Event{}
 
 	var sk string
@@ -105,10 +107,14 @@ func postEvent(nsec string, rs []string, id string, content string, tag string) 
 		return err
 	}
 
-	ev.Content = "#[0]\n" + content + " " + tag
 	ev.CreatedAt = nostr.Now()
 	ev.Kind = nostr.KindTextNote
-	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", id, "", "mention"})
+	if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
+		ev.Content = content + " " + tag + "\nnostr:" + nevent
+	} else {
+		ev.Content = "#[0]\n" + content + " " + tag
+	}
+	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
 	ev.Sign(sk)
 	success := 0
 	for _, r := range rs {
@@ -155,14 +161,14 @@ func analyze(ev *nostr.Event) error {
 	content := normalize(ev.Content)
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
-		err := postEvent(nsec, postRelays, ev.ID, content, "#n575 #haiku")
+		err := postEvent(nsec, postRelays, ev, content, "#n575 #haiku")
 		if err != nil {
 			return err
 		}
 	}
 	if isTanka(content) {
 		log.Println("MATCHED TANKA!", content)
-		err := postEvent(nsec, postRelays, ev.ID, content, "#n57577 #tanka")
+		err := postEvent(nsec, postRelays, ev, content, "#n57577 #tanka")
 		if err != nil {
 			return err
 		}
