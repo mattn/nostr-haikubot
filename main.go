@@ -108,7 +108,7 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 	}
 
 	ev.CreatedAt = nostr.Now()
-	ev.Kind = eev.Kind
+	ev.Kind = evv.Kind
 	if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
 		ev.Content = content + " " + tag + "\nnostr:" + nevent
 	} else {
