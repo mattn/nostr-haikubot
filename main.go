@@ -108,13 +108,18 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 	}
 
 	ev.CreatedAt = nostr.Now()
-	ev.Kind = nostr.KindTextNote
+	ev.Kind = eev.Kind
 	if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
 		ev.Content = content + " " + tag + "\nnostr:" + nevent
 	} else {
 		ev.Content = "#[0]\n" + content + " " + tag
 	}
 	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
+	if ev.Kind == nostr.KindChannelMessage {
+		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
+			ev.Tags = ev.Tags.AppendUnique(tag)
+		}
+	}
 	ev.Sign(sk)
 	success := 0
 	for _, r := range rs {
