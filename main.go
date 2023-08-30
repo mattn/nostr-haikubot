@@ -197,7 +197,7 @@ func server(from *time.Time) {
 	events := make(chan *nostr.Event, 100)
 	timestamp := nostr.Timestamp(from.Unix())
 	filters := []nostr.Filter{{
-		Kinds: []int{1},
+		Kinds: []int{nostr.KindTextNote, nostr.KindChannelMessage},
 		Since: &timestamp,
 	}}
 	sub, err := relay.Subscribe(context.Background(), filters)
