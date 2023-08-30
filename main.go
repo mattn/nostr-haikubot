@@ -114,8 +114,10 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 	} else {
 		ev.Content = "#[0]\n" + content + " " + tag
 	}
-	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
-	if ev.Kind == nostr.KindChannelMessage {
+	if ev.Kind == nostr.KindTextNote {
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
+	} else {
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
 		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
 			ev.Tags = ev.Tags.AppendUnique(tag)
 		}
