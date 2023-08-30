@@ -109,14 +109,15 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 
 	ev.CreatedAt = nostr.Now()
 	ev.Kind = evv.Kind
-	if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
-		ev.Content = content + " " + tag + "\nnostr:" + nevent
-	} else {
-		ev.Content = "#[0]\n" + content + " " + tag
-	}
 	if ev.Kind == nostr.KindTextNote {
+		if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
+			ev.Content = content + " " + tag + "\nnostr:" + nevent
+		} else {
+			ev.Content = "#[0]\n" + content + " " + tag
+		}
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
 	} else {
+		ev.Content = "#[0]\n" + content + " " + tag
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
 		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
 			ev.Tags = ev.Tags.AppendUnique(tag)
