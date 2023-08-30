@@ -117,7 +117,7 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 		}
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
 	} else {
-		ev.Content = "#[0]\n" + content + " " + tag
+		ev.Content = content + " " + tag
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
 		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
 			ev.Tags = ev.Tags.AppendUnique(tag)
