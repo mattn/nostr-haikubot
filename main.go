@@ -107,7 +107,7 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 		return err
 	}
 
-	ev.CreatedAt = nostr.Now()
+	ev.CreatedAt = nostr.Timestamp(evv.CreatedAt.Time().Add(time.Second).Unix())
 	ev.Kind = evv.Kind
 	if ev.Kind == nostr.KindTextNote {
 		if nevent, err := nip19.EncodeEvent(evv.ID, rs, evv.PubKey); err == nil {
