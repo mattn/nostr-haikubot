@@ -218,6 +218,8 @@ func server(from *time.Time) {
 		return
 	}
 
+	hctimer := time.NewTicker(10 * time.Minute)
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
@@ -242,11 +244,10 @@ func server(from *time.Time) {
 					*from = ev.CreatedAt.Time()
 				}
 				retry = 0
-			case <-time.After(10 * time.Minute):
+			case <-hctimer.C:
 				if url := os.Getenv("HEALTHCHECK_URL"); url != "" {
 					go healthPush(url)
 				}
-				http.Get("")
 			case <-time.After(10 * time.Second):
 				if relay.ConnectionError != nil {
 					log.Println(err)
