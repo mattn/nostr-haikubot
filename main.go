@@ -218,7 +218,8 @@ func server(from *time.Time) {
 		return
 	}
 
-	hctimer := time.NewTicker(10 * time.Minute)
+	hctimer := time.NewTicker(5 * time.Minute)
+	defer hctimer.Stop()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
