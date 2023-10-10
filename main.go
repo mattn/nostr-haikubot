@@ -8,6 +8,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -184,6 +185,13 @@ func analyze(ev *nostr.Event) error {
 	return nil
 }
 
+func healthPush(url string) {
+	_, err := http.Get(url)
+	if err != nil {
+		log.Println(err.Error())
+	}
+}
+
 func server(from *time.Time) {
 	enc := json.NewEncoder(os.Stdout)
 
@@ -233,6 +241,11 @@ func server(from *time.Time) {
 					*from = ev.CreatedAt.Time()
 				}
 				retry = 0
+			case <-time.After(10 * time.Minute):
+				if url := os.Getenv("HEALTHCHECK_URL"); url != "" {
+					go healthPush(url)
+				}
+				http.Get("")
 			case <-time.After(10 * time.Second):
 				if relay.ConnectionError != nil {
 					log.Println(err)
