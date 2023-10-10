@@ -185,7 +185,7 @@ func analyze(ev *nostr.Event) error {
 	return nil
 }
 
-func healthPush(url string) {
+func heartbeatPush(url string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Println(err.Error())
@@ -218,8 +218,8 @@ func server(from *time.Time) {
 		return
 	}
 
-	hctimer := time.NewTicker(5 * time.Minute)
-	defer hctimer.Stop()
+	hbtimer := time.NewTicker(5 * time.Minute)
+	defer hbtimer.Stop()
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -245,9 +245,9 @@ func server(from *time.Time) {
 					*from = ev.CreatedAt.Time()
 				}
 				retry = 0
-			case <-hctimer.C:
-				if url := os.Getenv("HEALTHCHECK_URL"); url != "" {
-					go healthPush(url)
+			case <-hbtimer.C:
+				if url := os.Getenv("HEARTBEAT_URL"); url != "" {
+					go heartbeatPush(url)
 				}
 			case <-time.After(10 * time.Second):
 				if relay.ConnectionError != nil {
