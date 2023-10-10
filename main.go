@@ -186,10 +186,11 @@ func analyze(ev *nostr.Event) error {
 }
 
 func healthPush(url string) {
-	_, err := http.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		log.Println(err.Error())
 	}
+	defer resp.Body.Close()
 }
 
 func server(from *time.Time) {
