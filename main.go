@@ -287,7 +287,7 @@ func main() {
 	var ver bool
 	var tt bool
 	flag.BoolVar(&debug, "V", false, "verbose")
-	flag.BoolVar(&ver, "v", false, "show version")
+	flag.BoolVar(&ver, "version", false, "show version")
 	flag.BoolVar(&tt, "t", false, "test")
 	flag.Parse()
 
