@@ -4,7 +4,7 @@ go 1.20
 
 require (
 	github.com/ikawaha/kagome-dict-ipa-neologd v0.3.2
-	github.com/mattn/go-haiku v0.0.37
+	github.com/mattn/go-haiku v0.0.38
 	github.com/nbd-wtf/go-nostr v0.25.7
 )
 
