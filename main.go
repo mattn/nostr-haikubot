@@ -131,11 +131,10 @@ func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag s
 		if err != nil {
 			continue
 		}
-		status, err := relay.Publish(context.Background(), ev)
-		relay.Close()
-		if err == nil && status != nostr.PublishStatusFailed {
+		if relay.Publish(context.Background(), ev) == nil {
 			success++
 		}
+		relay.Close()
 	}
 	if success == 0 {
 		return errors.New("failed to publish")
