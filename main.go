@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
 	"encoding/json"
@@ -10,7 +11,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -19,6 +19,7 @@ import (
 	//"github.com/ikawaha/kagome-dict/uni"
 	//"github.com/ikawaha/kagome-dict/ipa"
 	"github.com/ikawaha/kagome-dict-ipa-neologd"
+	"github.com/ikawaha/kagome-dict/dict"
 	"github.com/mattn/go-haiku"
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -46,47 +47,30 @@ var (
 
 	nsec = os.Getenv("HAIKUBOT_NSEC")
 
-	debug = false
+	reLink     = regexp.MustCompile(`\b\w+://\S+\b`)
+	reTag      = regexp.MustCompile(`\B#\S+`)
+	reJapanese = regexp.MustCompile(`[０-９Ａ-Ｚａ-ｚぁ-ゖァ-ヾ一-鶴]`)
 
-	baseDir string
+	debug = false
 
 	kagomeDic = ipaneologd.Dict()
 
-	reLink = regexp.MustCompile(`\b\w+://\S+\b`)
-	reTag  = regexp.MustCompile(`\B#\S+`)
+	//go:embed userdic.txt
+	dicdata []byte
 
-	//go:embed dict.json
-	worddata []byte
-
-	//go:embed bep-eng.dic
-	engdata []byte
-
-	words = map[*regexp.Regexp]string{}
+	userDic *dict.UserDict
 )
 
 func init() {
-	if dir, err := os.Executable(); err != nil {
-		log.Fatal(err)
-	} else {
-		baseDir = filepath.Dir(dir)
-	}
-
 	time.Local = time.FixedZone("Local", 9*60*60)
 
-	var m map[string]string
-	if err := json.Unmarshal(worddata, &m); err != nil {
-		log.Fatal(err)
+	r, err := dict.NewUserDicRecords(bytes.NewReader(dicdata))
+	if err != nil {
+		panic(err.Error())
 	}
-	words = make(map[*regexp.Regexp]string)
-	for k, v := range m {
-		words[regexp.MustCompile(k)] = v
-	}
-	for _, v := range strings.Split(string(engdata), "\n") {
-		if len(v) == 0 || v[0] == '#' {
-			continue
-		}
-		tok := strings.Split(v, " ")
-		words[regexp.MustCompile(`\b(?i:`+tok[0]+`)\b`)] = tok[1]
+	userDic, err = r.NewUserDict()
+	if err != nil {
+		panic(err.Error())
 	}
 }
 
@@ -149,21 +133,15 @@ func normalize(s string) string {
 }
 
 func isHaiku(s string) bool {
-	for k, v := range words {
-		s = k.ReplaceAllString(s, v)
-	}
-	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Udic: kagomeDic, Debug: debug})
+	return haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: debug})
 }
 
 func isTanka(s string) bool {
-	for k, v := range words {
-		s = k.ReplaceAllString(s, v)
-	}
-	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Udic: kagomeDic, Debug: debug})
+	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: debug})
 }
 
 func analyze(ev *nostr.Event) error {
-	if strings.Contains(ev.Content, "#n575") {
+	if strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
 		return nil
 	}
 	content := normalize(ev.Content)

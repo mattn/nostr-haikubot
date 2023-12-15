@@ -5,8 +5,9 @@ go 1.21
 toolchain go1.21.1
 
 require (
+	github.com/ikawaha/kagome-dict v1.0.9
 	github.com/ikawaha/kagome-dict-ipa-neologd v0.3.2
-	github.com/mattn/go-haiku v0.0.38
+	github.com/mattn/go-haiku v0.0.39
 	github.com/nbd-wtf/go-nostr v0.27.2
 )
 
@@ -23,7 +24,6 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.3.1 // indirect
 	github.com/golang/glog v1.2.0 // indirect
-	github.com/ikawaha/kagome-dict v1.0.9 // indirect
 	github.com/ikawaha/kagome-dict/uni v1.1.9 // indirect
 	github.com/ikawaha/kagome/v2 v2.9.4 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
