@@ -7411,7 +7411,6 @@ Snote,Snote,エスノウトゥ,カスタム名詞
 Snorts,Snorts,スノーツ,カスタム名詞
 Snorting,Snorting,スノーティング,カスタム名詞
 Snorted,Snorted,スノーティドゥ,カスタム名詞
-Snort,Snort,スノートゥ,カスタム名詞
 Snorkeling,Snorkeling,スノーケリング,カスタム名詞
 Snorkel,Snorkel,スノーケル,カスタム名詞
 Snoring,Snoring,スノアリング,カスタム名詞
@@ -45387,7 +45386,6 @@ Amgen,Amgen,アムジェン,カスタム名詞
 Amex,Amex,アメックス,カスタム名詞
 Amethysts,Amethysts,アメシスツ,カスタム名詞
 Amethystine,Amethystine,アミシスティン,カスタム名詞
-Amethyst,Amethyst,アメシストゥ,カスタム名詞
 Ames,Ames,エイムズ,カスタム名詞
 Amersham,Amersham,アマシャム,カスタム名詞
 Ameritech,Ameritech,アメリテク,カスタム名詞
@@ -47230,7 +47228,6 @@ Damus,Damus,ダムス,カスタム名詞
 Snort,Snort,スノーと,カスタム名詞
 Awayuki,Awayuki,アワユキ,カスタム名詞
 Kojira,Kojira,コジラ,カスタム名詞
-Maya,Maya,マヤ,カスタム名詞
 Mattn,Mattn,マッツン,カスタム名詞
 兵ども,兵ども,つわものども,カスタム名詞
 人気者,人気者,にんきもの,カスタム名詞
