@@ -166,6 +166,7 @@ func heartbeatPush(url string) {
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Println(err.Error())
+		return
 	}
 	defer resp.Body.Close()
 }
