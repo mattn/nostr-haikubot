@@ -101,9 +101,7 @@ func replyEvent(rs []string, evv *nostr.Event, content string) error {
 	ev.Kind = evv.Kind
 	ev.Content = content
 	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
-	for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
-		ev.Tags = ev.Tags.AppendUnique(tag)
-	}
+	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"p", evv.PubKey})
 	ev.Sign(sk)
 	success := 0
 	for _, r := range rs {
