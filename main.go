@@ -250,9 +250,12 @@ func server(from *time.Time) {
 				enc.Encode(ev)
 				for _, v := range ev.Tags {
 					if len(v) >= 2 && v[0] == "t" && v[1] == "俳句チェック" {
+						log.Println("test1")
 						s := normalize(ev.Content)
+						log.Println("test2", s)
 						var buf bytes.Buffer
 						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						log.Println("test3", buf.String())
 						err := replyEvent(postRelays, ev, buf.String())
 						if err != nil {
 							log.Println(err)
