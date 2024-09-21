@@ -93,6 +93,35 @@ func init() {
 	}
 }
 
+func replyEvent(rs []string, evv *nostr.Event, content string) error {
+	ev := nostr.Event{}
+
+	ev.PubKey = pub
+	ev.CreatedAt = nostr.Timestamp(evv.CreatedAt.Time().Add(time.Second).Unix())
+	ev.Kind = evv.Kind
+	ev.Content = content
+	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
+	for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
+		ev.Tags = ev.Tags.AppendUnique(tag)
+	}
+	ev.Sign(sk)
+	success := 0
+	for _, r := range rs {
+		relay, err := nostr.RelayConnect(context.Background(), r)
+		if err != nil {
+			continue
+		}
+		if relay.Publish(context.Background(), ev) == nil {
+			success++
+		}
+		relay.Close()
+	}
+	if success == 0 {
+		return errors.New("failed to publish")
+	}
+	return nil
+}
+
 func postEvent(rs []string, evv *nostr.Event, content string, tag string) error {
 	ev := nostr.Event{}
 
@@ -146,7 +175,7 @@ func isTanka(s string) bool {
 }
 
 func analyze(ev *nostr.Event) error {
-	if strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
+	if ev.PubKey == pub || strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
 		return nil
 	}
 	content := normalize(ev.Content)
@@ -224,7 +253,7 @@ func server(from *time.Time) {
 						s := normalize(ev.Content)
 						var buf bytes.Buffer
 						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
-						err := postEvent(postRelays, ev, buf.String(), "#n575")
+						err := replyEvent(postRelays, ev, buf.String())
 						if err != nil {
 							log.Println(err)
 						}
