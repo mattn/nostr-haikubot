@@ -45,7 +45,9 @@ var (
 		"wss://nostr.h3z.jp",
 	}
 
-	nsec = os.Getenv("HAIKUBOT_NSEC")
+	nsec string
+	sk   string
+	pub  string
 
 	reLink     = regexp.MustCompile(`\b\w+://\S+\b`)
 	reTag      = regexp.MustCompile(`\B#\S+`)
@@ -72,26 +74,29 @@ func init() {
 	if err != nil {
 		panic(err.Error())
 	}
-}
 
-func postEvent(nsec string, rs []string, evv *nostr.Event, content string, tag string) error {
-	ev := nostr.Event{}
-
-	var sk string
+	nsec = os.Getenv("HAIKUBOT_NSEC")
+	if nsec == "" {
+		panic("HAIKUBOT_NSEC is not set")
+	}
 	if _, s, err := nip19.Decode(nsec); err == nil {
 		sk, _ = s.(string)
 	} else {
-		return err
+		panic(err.Error())
 	}
 	if pub, err := nostr.GetPublicKey(sk); err == nil {
 		if _, err := nip19.EncodePublicKey(pub); err != nil {
-			return err
+			panic(err.Error())
 		}
-		ev.PubKey = pub
 	} else {
-		return err
+		panic(err.Error())
 	}
+}
 
+func postEvent(rs []string, evv *nostr.Event, content string, tag string) error {
+	ev := nostr.Event{}
+
+	ev.PubKey = pub
 	ev.CreatedAt = nostr.Timestamp(evv.CreatedAt.Time().Add(time.Second).Unix())
 	ev.Kind = evv.Kind
 	if ev.Kind == nostr.KindTextNote {
@@ -147,14 +152,14 @@ func analyze(ev *nostr.Event) error {
 	content := normalize(ev.Content)
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
-		err := postEvent(nsec, postRelays, ev, content, "#n575 #haiku")
+		err := postEvent(postRelays, ev, content, "#n575 #haiku")
 		if err != nil {
 			return err
 		}
 	}
 	if isTanka(content) {
 		log.Println("MATCHED TANKA!", content)
-		err := postEvent(nsec, postRelays, ev, content, "#n57577 #tanka")
+		err := postEvent(postRelays, ev, content, "#n57577 #tanka")
 		if err != nil {
 			return err
 		}
@@ -214,6 +219,18 @@ func server(from *time.Time) {
 					break events_loop
 				}
 				enc.Encode(ev)
+				for _, v := range ev.Tags {
+					if len(v) >= 2 && v[0] == "p" && v[1] == pub {
+						s := normalize(ev.Content)
+						var buf bytes.Buffer
+						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						err := postEvent(postRelays, ev, buf.String(), "#n575")
+						if err != nil {
+							log.Println(err)
+						}
+						continue
+					}
+				}
 				err = analyze(ev)
 				if err != nil {
 					log.Println(err)
@@ -283,10 +300,6 @@ func main() {
 			fmt.Println("TANKA!")
 		}
 		return
-	}
-
-	if nsec == "" {
-		log.Fatal("HAIKUBOT_NSEC is not set")
 	}
 
 	from := time.Now()
