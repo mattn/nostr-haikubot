@@ -249,7 +249,7 @@ func server(from *time.Time) {
 				}
 				enc.Encode(ev)
 				for _, v := range ev.Tags {
-					if len(v) >= 2 && v[0] == "p" && v[1] == pub {
+					if len(v) >= 2 && v[0] == "t" && v[1] == "俳句チェック" {
 						s := normalize(ev.Content)
 						var buf bytes.Buffer
 						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
