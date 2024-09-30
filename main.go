@@ -246,28 +246,29 @@ func server(from *time.Time) {
 					break events_loop
 				}
 				enc.Encode(ev)
-				if ev.PubKey != pub {
-					for _, v := range ev.Tags {
-						if len(v) >= 2 && v[0] == "t" && v[1] == "俳句チェック" {
-							s := normalize(ev.Content)
-							var buf bytes.Buffer
-							haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
-							err := replyEvent(postRelays, ev, buf.String())
-							if err != nil {
-								log.Println(err)
-							}
-							continue events_loop
+				if ev.PubKey == pub {
+					continue
+				}
+				for _, v := range ev.Tags {
+					if len(v) >= 2 && v[0] == "t" && v[1] == "俳句チェック" {
+						s := normalize(ev.Content)
+						var buf bytes.Buffer
+						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						err := replyEvent(postRelays, ev, buf.String())
+						if err != nil {
+							log.Println(err)
 						}
-						if len(v) >= 2 && v[0] == "t" && v[1] == "短歌チェック" {
-							s := normalize(ev.Content)
-							var buf bytes.Buffer
-							haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
-							err := replyEvent(postRelays, ev, buf.String())
-							if err != nil {
-								log.Println(err)
-							}
-							continue events_loop
+						continue events_loop
+					}
+					if len(v) >= 2 && v[0] == "t" && v[1] == "短歌チェック" {
+						s := normalize(ev.Content)
+						var buf bytes.Buffer
+						haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						err := replyEvent(postRelays, ev, buf.String())
+						if err != nil {
+							log.Println(err)
 						}
+						continue events_loop
 					}
 				}
 				err = analyze(ev)
