@@ -33,16 +33,20 @@ var revision = "HEAD"
 
 var (
 	//feedRelay = "wss://universe.nostrich.land/?lang=ja"
-	feedRelay = "wss://relay-jp.nostr.wirednet.jp"
+	feedRelays = []string{
+		"wss://relay-jp.nostr.wirednet.jp",
+		"wss://yabu.me",
+	}
 
 	postRelays = []string{
-		"wss://nostr-relay.nokotaro.com",
+		//"wss://nostr-relay.nokotaro.com",
 		"wss://relay-jp.nostr.wirednet.jp",
-		"wss://nostr.holybea.com",
-		"wss://relay.snort.social",
+		"wss://yabu.me",
+		//"wss://nostr.holybea.com",
+		//"wss://relay.snort.social",
 		"wss://relay.damus.io",
-		"wss://relay.nostrich.land",
-		"wss://nostr.h3z.jp",
+		//"wss://relay.nostrich.land",
+		//"wss://nostr.h3z.jp",
 	}
 
 	nsec string
@@ -207,14 +211,7 @@ func server(from *time.Time) {
 	enc := json.NewEncoder(os.Stdout)
 
 	log.Println("Connecting to relay")
-	relay, err := nostr.RelayConnect(context.Background(), feedRelay)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer relay.Close()
-
-	log.Println("Connected to relay")
+	pool := nostr.NewSimplePool(context.Background())
 
 	events := make(chan *nostr.Event, 100)
 	timestamp := nostr.Timestamp(from.Unix())
@@ -222,11 +219,7 @@ func server(from *time.Time) {
 		Kinds: []int{nostr.KindTextNote, nostr.KindChannelMessage},
 		Since: &timestamp,
 	}}
-	sub, err := relay.Subscribe(context.Background(), filters)
-	if err != nil {
-		log.Println(err)
-		return
-	}
+	sub := pool.SubMany(context.Background(), feedRelays, filters)
 
 	hbtimer := time.NewTicker(5 * time.Minute)
 	defer hbtimer.Stop()
@@ -236,7 +229,6 @@ func server(from *time.Time) {
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
 
-		retry := 0
 		log.Println("Start")
 	events_loop:
 		for {
@@ -271,7 +263,7 @@ func server(from *time.Time) {
 						continue events_loop
 					}
 				}
-				err = analyze(ev)
+				err := analyze(ev)
 				if err != nil {
 					log.Println(err)
 					continue
@@ -279,24 +271,9 @@ func server(from *time.Time) {
 				if ev.CreatedAt.Time().After(*from) {
 					*from = ev.CreatedAt.Time()
 				}
-				retry = 0
 			case <-hbtimer.C:
 				if url := os.Getenv("HEARTBEAT_URL"); url != "" {
 					go heartbeatPush(url)
-				}
-			case <-time.After(10 * time.Second):
-				if relay.ConnectionError != nil {
-					log.Println(err)
-					close(events)
-					sub.Unsub()
-					break events_loop
-				}
-				retry++
-				log.Println("Health check", retry)
-				if retry > 60 {
-					close(events)
-					sub.Unsub()
-					break events_loop
 				}
 			}
 		}
@@ -307,11 +284,11 @@ func server(from *time.Time) {
 
 loop:
 	for {
-		ev, ok := <-sub.Events
-		if !ok || ev == nil {
+		ev, ok := <-sub
+		if !ok {
 			break loop
 		}
-		events <- ev
+		events <- ev.Event
 	}
 	wg.Wait()
 
