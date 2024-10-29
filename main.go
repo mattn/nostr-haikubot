@@ -104,7 +104,7 @@ func replyEvent(rs []string, evv *nostr.Event, content string) error {
 	ev.CreatedAt = nostr.Timestamp(evv.CreatedAt.Time().Add(time.Second).Unix())
 	ev.Kind = evv.Kind
 	ev.Content = content
-	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
+	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "root"})
 	ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"p", evv.PubKey})
 	ev.Sign(sk)
 	success := 0
@@ -139,7 +139,7 @@ func postEvent(rs []string, evv *nostr.Event, content string, tag string) error 
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
 	} else {
 		ev.Content = content + " " + tag
-		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "reply"})
+		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "root"})
 		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
 			ev.Tags = ev.Tags.AppendUnique(tag)
 		}
