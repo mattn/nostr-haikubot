@@ -1,6 +1,8 @@
 secret.yaml
 k8s
 *.sh
+*.bat
+*.cmd
 nostr-haikubot
 nostr-haikubot.exe
 fix
