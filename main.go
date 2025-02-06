@@ -139,9 +139,15 @@ func postEvent(rs []string, evv *nostr.Event, content string, tag string) error 
 		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "mention"})
 	} else {
 		ev.Content = content + " " + tag
-		ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "root"})
+		hasRoot := false
 		for _, tag := range evv.Tags.FilterOut([]string{"e", "p"}) {
 			ev.Tags = ev.Tags.AppendUnique(tag)
+			if len(tag) >= 4 && tag[0] == "e" && tag[3] == "root" {
+				hasRoot = true
+			}
+		}
+		if !hasRoot {
+			ev.Tags = ev.Tags.AppendUnique(nostr.Tag{"e", evv.ID, "", "root"})
 		}
 	}
 	ev.Sign(sk)
