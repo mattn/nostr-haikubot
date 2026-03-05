@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	_ "embed"
@@ -59,6 +60,8 @@ var (
 
 	debug = false
 
+	excludedPubkeys = map[string]bool{}
+
 	kagomeDic = ipaneologd.Dict()
 
 	//go:embed userdic.txt
@@ -94,6 +97,37 @@ func init() {
 		}
 	} else {
 		panic(err.Error())
+	}
+}
+
+func loadExcludedNpubs(path string) {
+	f, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Println("No excluded npubs file found:", path)
+			return
+		}
+		log.Println("Failed to open excluded npubs file:", err)
+		return
+	}
+	defer f.Close()
+
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "npub1") {
+			if _, v, err := nip19.Decode(line); err == nil {
+				if pubkey, ok := v.(string); ok {
+					excludedPubkeys[pubkey] = true
+					log.Println("Excluded npub:", line)
+				}
+			} else {
+				log.Println("Invalid npub:", line, err)
+			}
+		}
 	}
 }
 
@@ -183,7 +217,7 @@ func isTanka(s string) bool {
 }
 
 func analyze(ev *nostr.Event) error {
-	if ev.PubKey == pub || strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
+	if ev.PubKey == pub || excludedPubkeys[ev.PubKey] || strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
 		return nil
 	}
 	content := normalize(ev.Content)
@@ -313,6 +347,8 @@ func main() {
 		fmt.Println(version)
 		os.Exit(0)
 	}
+
+	loadExcludedNpubs("excluded_npubs.txt")
 
 	if tt {
 		s := normalize(strings.Join(flag.Args(), " "))
