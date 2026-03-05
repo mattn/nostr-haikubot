@@ -338,9 +338,11 @@ loop:
 func main() {
 	var ver bool
 	var tt bool
+	var excludedNpubsFile string
 	flag.BoolVar(&debug, "V", false, "verbose")
 	flag.BoolVar(&ver, "version", false, "show version")
 	flag.BoolVar(&tt, "t", false, "test")
+	flag.StringVar(&excludedNpubsFile, "excluded-npubs", "excluded_npubs.txt", "path to excluded npubs file")
 	flag.Parse()
 
 	if ver {
@@ -348,7 +350,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	loadExcludedNpubs("excluded_npubs.txt")
+	loadExcludedNpubs(excludedNpubsFile)
 
 	if tt {
 		s := normalize(strings.Join(flag.Args(), " "))

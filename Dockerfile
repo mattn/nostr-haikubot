@@ -12,4 +12,5 @@ RUN [ -e /usr/bin/upx ] && upx /go/bin/nostr-haikubot || echo
 FROM scratch
 COPY --link --from=build-dev /go/bin/nostr-haikubot /go/bin/nostr-haikubot
 COPY --from=build-dev /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-CMD ["/go/bin/nostr-haikubot"]
+COPY --link --from=build-dev /go/src/app/excluded_npubs.txt /etc/nostr-haikubot/excluded_npubs.txt
+CMD ["/go/bin/nostr-haikubot", "-excluded-npubs", "/etc/nostr-haikubot/excluded_npubs.txt"]
