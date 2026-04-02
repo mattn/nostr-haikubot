@@ -91,11 +91,10 @@ func init() {
 	} else {
 		panic(err.Error())
 	}
-	if pub, err := nostr.GetPublicKey(sk); err == nil {
-		if _, err := nip19.EncodePublicKey(pub); err != nil {
-			panic(err.Error())
-		}
-	} else {
+	if pub, err = nostr.GetPublicKey(sk); err != nil {
+		panic(err.Error())
+	}
+	if _, err = nip19.EncodePublicKey(pub); err != nil {
 		panic(err.Error())
 	}
 }
