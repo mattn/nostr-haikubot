@@ -28,7 +28,7 @@ import (
 
 const name = "nostr-haikubot"
 
-const version = "0.0.69"
+const version = "0.0.70"
 
 var revision = "HEAD"
 
