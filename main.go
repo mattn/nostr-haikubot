@@ -16,6 +16,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	//"github.com/ikawaha/kagome-dict/uni"
 	//"github.com/ikawaha/kagome-dict/ipa"
@@ -215,11 +216,16 @@ func isTanka(s string) bool {
 	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: debug})
 }
 
+
 func analyze(ev *nostr.Event) error {
 	if ev.PubKey == pub || excludedPubkeys[ev.PubKey] || strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
 		return nil
 	}
 	content := normalize(ev.Content)
+	clen := utf8.RuneCountInString(content)
+	if clen < 10 || clen > 100 {
+		return nil
+	}
 	if isHaiku(content) {
 		log.Println("MATCHED HAIKU!", content)
 		err := postEvent(postRelays, ev, content, "#n575 #haiku")
@@ -268,6 +274,10 @@ func server(from *time.Time) {
 	go func(wg *sync.WaitGroup, events chan *nostr.Event) {
 		defer wg.Done()
 
+		retry := 0
+		idleTimer := time.NewTimer(10 * time.Second)
+		defer idleTimer.Stop()
+
 		log.Println("Start")
 	events_loop:
 		for {
@@ -310,10 +320,26 @@ func server(from *time.Time) {
 				if ev.CreatedAt.Time().After(*from) {
 					*from = ev.CreatedAt.Time()
 				}
+				retry = 0
+				if !idleTimer.Stop() {
+					select {
+					case <-idleTimer.C:
+					default:
+					}
+				}
+				idleTimer.Reset(10 * time.Second)
 			case <-hbtimer.C:
 				if url := os.Getenv("HEARTBEAT_URL"); url != "" {
 					go heartbeatPush(url)
 				}
+			case <-idleTimer.C:
+				retry++
+				log.Println("health check", "retry", retry)
+				if retry > 60 {
+					log.Println("health check timeout", "retry", retry)
+					break events_loop
+				}
+				idleTimer.Reset(10 * time.Second)
 			}
 		}
 		log.Println("Finish")
