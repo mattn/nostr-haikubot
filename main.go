@@ -29,7 +29,7 @@ import (
 
 const name = "nostr-haikubot"
 
-const version = "0.0.71"
+const version = "0.0.72"
 
 var revision = "HEAD"
 
@@ -215,7 +215,6 @@ func isHaiku(s string) bool {
 func isTanka(s string) bool {
 	return haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: debug})
 }
-
 
 func analyze(ev *nostr.Event) error {
 	if ev.PubKey == pub || excludedPubkeys[ev.PubKey] || strings.Contains(ev.Content, "#n575") || !reJapanese.MatchString(ev.Content) {
