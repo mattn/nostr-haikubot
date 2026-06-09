@@ -293,8 +293,12 @@ func server(from *time.Time) {
 					if len(v) >= 2 && v[0] == "t" && v[1] == "俳句チェック" {
 						s := normalize(ev.Content)
 						var buf bytes.Buffer
-						haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
-						err := replyEvent(postRelays, ev, buf.String())
+						matched := haiku.MatchWithOpt(s, []int{5, 7, 5}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						result := "❌ 5-7-5 ではありません"
+						if matched {
+							result = "✅ 5-7-5 です"
+						}
+						err := replyEvent(postRelays, ev, result+"\n\n"+buf.String())
 						if err != nil {
 							log.Println(err)
 						}
@@ -303,8 +307,12 @@ func server(from *time.Time) {
 					if len(v) >= 2 && v[0] == "t" && v[1] == "短歌チェック" {
 						s := normalize(ev.Content)
 						var buf bytes.Buffer
-						haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
-						err := replyEvent(postRelays, ev, buf.String())
+						matched := haiku.MatchWithOpt(s, []int{5, 7, 5, 7, 7}, &haiku.Opt{Dict: kagomeDic, UserDict: userDic, Debug: true, DebugWriter: &buf})
+						result := "❌ 5-7-5-7-7 ではありません"
+						if matched {
+							result = "✅ 5-7-5-7-7 です"
+						}
+						err := replyEvent(postRelays, ev, result+"\n\n"+buf.String())
 						if err != nil {
 							log.Println(err)
 						}
