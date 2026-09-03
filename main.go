@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+	rdebug "runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -20,7 +21,6 @@ import (
 
 	//"github.com/ikawaha/kagome-dict/uni"
 	//"github.com/ikawaha/kagome-dict/ipa"
-	"github.com/ikawaha/kagome-dict-ipa-neologd"
 	"github.com/ikawaha/kagome-dict/dict"
 	"github.com/mattn/go-haiku"
 	"github.com/nbd-wtf/go-nostr"
@@ -63,7 +63,7 @@ var (
 
 	excludedPubkeys = map[string]bool{}
 
-	kagomeDic = ipaneologd.Dict()
+	kagomeDic *dict.Dict
 
 	//go:embed userdic.txt
 	dicdata []byte
@@ -383,6 +383,11 @@ func main() {
 	}
 
 	loadExcludedNpubs(excludedNpubsFile)
+
+	kagomeDic = systemDict()
+	// the dictionary allocates far more than it keeps while loading. give
+	// the rest back to the OS instead of letting it sit in the heap.
+	rdebug.FreeOSMemory()
 
 	if tt {
 		s := normalize(strings.Join(flag.Args(), " "))

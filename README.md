@@ -15,6 +15,12 @@ $ ./nostr-haikubot
 go install github.com/mattn/nostr-haikubot@latest
 ```
 
+`make build` builds with the `slimdict` build tag, which embeds a copy of the
+ipa-neologd dictionary with the feature columns go-haiku does not use removed
+(see `cmd/slimdict`). Detection results are the same and it needs about 400MB
+less memory. The command above, without the tag, embeds the dictionary as it
+is.
+
 ## License
 
 MIT

@@ -7,7 +7,8 @@ RUN apk add --no-cache upx || \
     go version && \
     go mod download
 COPY --link . .
-RUN CGO_ENABLED=0 go install -buildvcs=false -trimpath -ldflags '-w -s'
+RUN go run ./cmd/slimdict -out neologd-slim.dict
+RUN CGO_ENABLED=0 go install -tags slimdict -buildvcs=false -trimpath -ldflags '-w -s'
 RUN [ -e /usr/bin/upx ] && upx /go/bin/nostr-haikubot || echo
 FROM scratch
 COPY --link --from=build-dev /go/bin/nostr-haikubot /go/bin/nostr-haikubot
