@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/ikawaha/kagome-dict v1.1.7
 	github.com/ikawaha/kagome-dict-ipa-neologd v0.3.2
-	github.com/mattn/go-haiku v0.0.46
+	github.com/mattn/go-haiku v0.0.47
 	github.com/nbd-wtf/go-nostr v0.52.3
 )
 
