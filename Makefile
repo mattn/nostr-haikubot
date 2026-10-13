@@ -1,5 +1,4 @@
 BIN := nostr-haikubot
-DICT := neologd-slim.dict
 VERSION := $$(make -s show-version)
 CURRENT_REVISION := $(shell git rev-parse --short HEAD)
 BUILD_LDFLAGS := "-s -w -X main.revision=$(CURRENT_REVISION)"
@@ -10,17 +9,12 @@ export GO111MODULE=on
 all: clean build
 
 .PHONY: build
-build: $(DICT)
-	go build -tags slimdict -ldflags=$(BUILD_LDFLAGS) -o $(BIN) .
+build:
+	go build -ldflags=$(BUILD_LDFLAGS) -o $(BIN) .
 
 .PHONY: install
-install: $(DICT)
-	go install -tags slimdict -ldflags=$(BUILD_LDFLAGS) .
-
-# the slimmed-down dictionary, see cmd/slimdict. building without the slimdict
-# tag falls back to the dictionary embedded in kagome-dict-ipa-neologd.
-$(DICT): go.mod cmd/slimdict/main.go
-	go run ./cmd/slimdict -out $@
+install:
+	go install -ldflags=$(BUILD_LDFLAGS) .
 
 .PHONY: show-version
 show-version: $(GOBIN)/gobump
@@ -30,8 +24,8 @@ $(GOBIN)/gobump:
 	go install github.com/x-motemen/gobump/cmd/gobump@latest
 
 .PHONY: cross
-cross: $(DICT) $(GOBIN)/goxz
-	goxz -n $(BIN) -pv=v$(VERSION) -build-tags=slimdict -build-ldflags=$(BUILD_LDFLAGS) .
+cross: $(GOBIN)/goxz
+	goxz -n $(BIN) -pv=v$(VERSION) -build-ldflags=$(BUILD_LDFLAGS) .
 
 $(GOBIN)/goxz:
 	go install github.com/Songmu/goxz/cmd/goxz@latest
